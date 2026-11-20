@@ -1,14 +1,14 @@
 import { sources, photos, photoSource, districts, places, timeline, landscapes, people, culture, food, facts, itineraries } from './data.js';
 
+import { directions, escapeHtml as escape, mapsDestination, placePath, placeSearchText, tripCards } from './place-guide.js';
+
 const $ = selector => document.querySelector(selector);
 const byId = id => places.find(place => place.id === id);
 const categories = [...new Set(places.map(place => place.category))].sort();
 const prefersReducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const external = (label, url, className = 'text-link') => `<a class="${className}" href="${escape(url)}" target="_blank" rel="noopener noreferrer">${escape(label)}</a>`;
 const reference = id => external(sources[id][0], sources[id][1]);
-const directions = place => 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(place.directionsQuery || (place.coords ? place.coords.join(',') : `${place.name}, ${districts[place.district][0]}, Munshiganj, Bangladesh`));
-const placeButton = place => `<button class="text-link" type="button" data-place="${place.id}">${escape(place.name)}</button>`;
+const placeLink = place => `<a class="text-link" href="${placePath(place)}">${escape(place.name)}</a>`;
 
 function photo(id, className = '') {
   return `<img class="${className}" src="assets/${id}-sm.webp" srcset="assets/${id}-sm.webp 620w, assets/${id}.webp 1060w" sizes="(max-width: 610px) 92vw, (max-width: 840px) 46vw, 42vw" loading="lazy" decoding="async" width="1060" height="705" alt="${escape(photos[id][2])}">`;
@@ -47,24 +47,48 @@ function tabs(tabId, panelId, labels, render, initial = 0) {
 const districtSelect = tabs('district-tabs', 'district-panel', districts.map(item => item[0]), index => {
   const [name, bangla, description, image] = districts[index];
   const destinations = places.filter(place => place.district === index).slice(0, 5);
-  return `<article class="feature-panel"><div class="feature-content"><p class="kicker bengali-name" lang="bn">${bangla}</p><h3>${name}</h3><p>${description}</p><div class="place-links">${destinations.map(placeButton).join('')}</div><button type="button" class="text-link district-map-link" data-map-district="${index}">Show on the map</button></div>${photo(image)}</article>`;
+  return `<article class="feature-panel"><div class="feature-content"><p class="kicker bengali-name" lang="bn">${bangla}</p><h3>${name}</h3><p>${description}</p><div class="place-links">${destinations.map(placeLink).join('')}</div><button type="button" class="text-link district-map-link" data-map-district="${index}">Show on the map</button></div>${photo(image)}</article>`;
 });
 
 const timelineImages = ['', 'vihara', '', 'mosque', 'fort', 'temple', '', 'bridge'];
+const warIndex = timeline.findIndex(([name]) => name === 'Liberation War');
+const warTribute = $('#liberation-war');
 const historySelect = tabs('timeline-tabs', 'timeline-panel', timeline.map(item => item[0]), index => {
   const [, period, title, description, ref] = timeline[index];
   const image = timelineImages[index];
+  warTribute.hidden = index !== warIndex;
+  if (warTribute.hidden && location.hash === '#liberation-war') history.replaceState(null, '', '#history');
   return `<article class="timeline-article"><p class="period">${period}</p><h3>${title}</h3><p>${description}</p>${reference(ref)}${image ? photo(image, 'timeline-image') : ''}</article>`;
-}, 1);
+}, location.hash === '#liberation-war' ? warIndex : 1);
 
 const landscapeSelect = tabs('nature-tabs', 'nature-panel', landscapes.map(item => item[0]), index => {
   const [name, title, description, image, ref] = landscapes[index];
-  return `<article class="feature-panel ${image ? '' : 'text-only'}"><div class="feature-content"><p class="kicker">${name}</p><h3>${title}</h3><p>${description}</p>${index === 4 ? '<dl class="season-compare"><div><dt>Monsoon</dt><dd>Open water and fishing boats</dd></div><div><dt>Dry season</dt><dd>Fields and village approaches</dd></div></dl>' : ''}<div class="place-links">${reference(ref)}</div></div>${image ? photo(image) : ''}</article>`;
+  if (name === 'Arial Beel') {
+    return `<article class="season-story"><div class="season-intro"><p class="kicker">${name}</p><h3>${title}</h3><p>${description}</p></div><div class="season-pair">
+      <figure>${photo('beel')}<figcaption><strong>Monsoon water · June</strong><p>Flooded fields and open water.</p>${external('MD.SHADDAM HOSSAIN · Wikimedia Commons', photoSource('beel'))}</figcaption></figure>
+      <figure>${photo('beel-harvest')}<figcaption><strong>Paddy harvest · April</strong><p>The cultivated basin after the winter growing season.</p>${external('Bangladesh Press Information Department · Wikimedia Commons', photoSource('beel-harvest'))}</figcaption></figure>
+    </div><div class="place-links">${reference(ref)}${reference('beelWinter')}${placeLink(byId('arial-beel'))}</div></article>`;
+  }
+  return `<article class="feature-panel ${image ? '' : 'text-only'}"><div class="feature-content"><p class="kicker">${name}</p><h3>${title}</h3><p>${description}</p><div class="place-links">${reference(ref)}</div></div>${image ? photo(image) : ''}</article>`;
 }, 4);
+
+function routeLink(stops) {
+  const destinations = stops.map(id => mapsDestination(byId(id)));
+  const params = new URLSearchParams({ api: '1', origin: destinations[0], destination: destinations.at(-1) });
+  if (destinations.length > 2) params.set('waypoints', destinations.slice(1, -1).join('|'));
+  return external('Open route in Google Maps', 'https://www.google.com/maps/dir/?' + params, 'button button-line');
+}
 
 const travelSelect = tabs('trip-tabs', 'trip-panel', itineraries.map(item => item[0]), index => {
   const [, title, description, stops] = itineraries[index];
-  return `<article class="note trip-content"><h3>${title}</h3><p>${description}</p><div class="place-links">${stops.map(id => placeButton(byId(id))).join('')}</div></article>`;
+  return `<article class="note trip-content"><h3>${title}</h3><p>${description}</p><ol class="trip-stops">${stops.map(id => `<li>${placeLink(byId(id))}</li>`).join('')}</ol>${routeLink(stops)}</article>`;
+});
+
+$('#trip-cards').innerHTML = tripCards.map(trip => `<a class="trip-card" href="#trip-panel" data-trip-index="${trip.index}">${photo(trip.image)}<div><h3>${trip.label}</h3><p>${trip.stops}</p><span>View itinerary</span></div></a>`).join('');
+$('#trip-cards').addEventListener('click', event => {
+  const trip = event.target.closest('[data-trip-index]');
+  if (!trip) return;
+  travelSelect(Number(trip.dataset.tripIndex));
 });
 
 $('#culture-grid').innerHTML = culture.map(([title, description, ref, image]) => `<article class="culture-card">${photo(image, 'card-photo')}<h3>${title}</h3><p>${description}</p>${reference(ref)}</article>`).join('');
@@ -99,12 +123,12 @@ function renderPlaces() {
   const results = places.filter(place => (
     (directory.category === 'All' || directory.category === place.category) &&
     (district === '' || Number(district) === place.district) &&
-    matches(query, [place.name, place.bn, place.category, districts[place.district][0], districts[place.district][1], place.period, place.intro, place.body].join(' '))
+    matches(query, placeSearchText(place))
   ));
   const overview = !query && district === '' && directory.category === 'All';
   const ordered = overview ? [...featuredPlaces.map(byId), ...results.filter(place => !featuredPlaces.includes(place.id))] : results;
   const shown = directory.expanded ? ordered : ordered.slice(0, 6);
-  $('#place-grid').innerHTML = shown.map(place => `<article class="place-card">${place.image ? photo(place.image, 'card-photo') : ''}<div class="place-card-content"><p class="kicker">${place.category} · ${districts[place.district][0]}</p><h3>${escape(place.name)}</h3><p>${place.intro}</p><button type="button" class="text-link" aria-label="Read about ${escape(place.name)}" data-place="${place.id}">Explore this place</button></div></article>`).join('') || '<p class="empty">No matches. Try another search or clear a filter.</p>';
+  $('#place-grid').innerHTML = shown.map(place => `<article class="place-card">${place.image ? photo(place.image, 'card-photo') : ''}<div class="place-card-content"><p class="kicker">${place.category} · ${districts[place.district][0]}</p><h3>${escape(place.name)}</h3><p>${place.intro}</p><a class="text-link" aria-label="Read about ${escape(place.name)}" href="${placePath(place)}">Explore this place</a></div></article>`).join('') || '<p class="empty">No matches. Try another search or clear a filter.</p>';
   $('#place-count').textContent = shown.length === results.length ? `${results.length} ${results.length === 1 ? 'place' : 'places'}` : `Showing ${shown.length} of ${results.length} places`;
   $('#more-places').hidden = results.length <= 6 || directory.expanded;
 }
@@ -118,11 +142,11 @@ $('#place-district').addEventListener('change', () => { directory.expanded = fal
 $('#more-places').addEventListener('click', () => {
   directory.expanded = true;
   renderPlaces();
-  $('#place-grid').children[6]?.querySelector('button')?.focus({ preventScroll: true });
+  $('#place-grid').children[6]?.querySelector('a')?.focus({ preventScroll: true });
 });
 renderPlaces();
 
-const dialogs = { detail: $('#detail-dialog'), search: $('#search-dialog'), photo: $('#lightbox') };
+const dialogs = { search: $('#search-dialog'), photo: $('#lightbox') };
 const dialogReturn = new WeakMap();
 function openDialog(dialog, opener) {
   dialogReturn.set(dialog, opener);
@@ -139,25 +163,18 @@ for (const dialog of Object.values(dialogs)) {
   dialog.addEventListener('close', () => {
     if (!Object.values(dialogs).some(item => item.open)) document.body.classList.remove('modal-open');
     const opener = dialogReturn.get(dialog);
-    if (opener?.isConnected && (!dialogs.detail.open || dialogs.detail.contains(opener))) opener.focus({ preventScroll: true });
+    if (opener?.isConnected) opener.focus({ preventScroll: true });
   });
 }
 
-function openPlace(place, opener) {
-  if (dialogs.search.open) dialogs.search.close();
-  const images = place.gallery || (place.image ? [place.image] : []);
-  $('#detail-content').innerHTML = `${place.image ? photo(place.image, 'dialog-photo') : ''}<div class="dialog-body"><p class="kicker">${place.category} · ${place.period}</p><h2 id="detail-title">${escape(place.name)}</h2><p lang="bn">${place.bn}</p><p><strong>${place.location || districts[place.district][0]}</strong></p><p>${place.body}</p><h3>Visiting</h3><p>${place.visit}</p><div class="place-links">${external('Directions on Google Maps', directions(place))}</div>${images.length ? `<div class="dialog-gallery">${images.map(id => `<button type="button" data-photo="${id}" aria-label="View ${escape(photos[id][2])}">${photo(id)}</button>`).join('')}</div>` : ''}<div class="place-links">${place.refs.map(reference).join('')}${place.coordinateSource ? external('Map location source', place.coordinateSource) : ''}</div></div>`;
-  openDialog(dialogs.detail, opener);
-  dialogs.detail.scrollTop = 0;
-}
-
 const galleryPhotos = Object.keys(photos).filter(id => id !== 'districtmap');
+const uncroppedGallery = new Set(['math', 'temple', 'temple2']);
 let activeGallery = galleryPhotos;
 let photoSet = [];
 let photoIndex = 0;
 function renderGallery(category = 'All') {
   activeGallery = galleryPhotos.filter(id => category === 'All' || photos[id][3] === category);
-  $('#gallery-grid').innerHTML = activeGallery.map(id => `<button class="gallery-tile" type="button" aria-label="View ${escape(photos[id][2])}" data-photo="${id}">${photo(id)}<span>${escape(photos[id][2])}</span></button>`).join('');
+  $('#gallery-grid').innerHTML = activeGallery.map(id => `<button class="gallery-tile${uncroppedGallery.has(id) ? ' gallery-tile-uncropped' : ''}" type="button" aria-label="View ${escape(photos[id][2])}" data-photo="${id}">${photo(id)}<span>${escape(photos[id][2])}</span></button>`).join('');
 }
 function renderLightbox() {
   const id = photoSet[photoIndex];
@@ -181,8 +198,9 @@ chips($('#gallery-filters'), ['All', ...new Set(galleryPhotos.map(id => photos[i
 renderGallery();
 
 const searchIndex = [
-  ...places.map(place => ({ title: place.name, description: place.intro, place: place.id, keywords: `${place.bn} ${districts[place.district][0]} ${place.body} ${place.category}` })),
+  ...places.map(place => ({ title: place.name, description: place.intro, place: place.id, keywords: placeSearchText(place) })),
   ...districts.map(([name, bn, description], index) => ({ title: name, description, target: 'discover', index, keywords: bn })),
+  { title: 'Shaheed Bir Muktijudda Faizur Rahman', description: 'Lance Naik, East Pakistan Rifles · Liberation War, 1971', target: 'liberation-war', keywords: 'Faizur Foyzur Foyezur Rahman Jamurki Rancha 1971 Gazette 66 ফয়েজুর রহমান ফয়জুর রহমান ল্যান্স নায়েক মুক্তিযুদ্ধ' },
   ...timeline.map(([name, period, title, description], index) => ({ title: name, description: period + ' · ' + title, target: 'history', index, keywords: description + ' ইতিহাস Bikrampur' })),
   ...landscapes.map(([name, title, description], index) => ({ title: name, description: title, target: 'nature', index, keywords: description })),
   ...itineraries.map(([name, title, description], index) => ({ title, description, target: 'travel', index, keywords: name + ' itinerary route visit' })),
@@ -200,7 +218,13 @@ function renderSearch() {
   }
   const hits = searchIndex.filter(item => matches(query, [item.title, item.description, item.keywords].join(' ')));
   hits.sort((a, b) => Number(normalize(b.title).includes(normalize(query))) - Number(normalize(a.title).includes(normalize(query))));
-  $('#search-results').innerHTML = hits.length ? `<p class="search-hint">${hits.length} ${hits.length === 1 ? 'result' : 'results'}${hits.length > 14 ? ' · first 14 shown' : ''}</p><ul class="search-results-list">${hits.slice(0, 14).map(hit => `<li><button type="button" class="search-hit" data-result="${searchIndex.indexOf(hit)}">${escape(hit.title)}<small>${escape(hit.description)}</small></button></li>`).join('')}</ul>` : '<p class="search-hint">No results. Try a shorter name or a different spelling.</p>';
+  $('#search-results').innerHTML = hits.length ? `<p class="search-hint">${hits.length} ${hits.length === 1 ? 'result' : 'results'}${hits.length > 14 ? ' · first 14 shown' : ''}</p><ul class="search-results-list">${hits.slice(0, 14).map(hit => {
+    const contents = `${escape(hit.title)}<small>${escape(hit.description)}</small>`;
+    const control = hit.place
+      ? `<a class="search-hit" href="${placePath(byId(hit.place))}">${contents}</a>`
+      : `<button type="button" class="search-hit" data-result="${searchIndex.indexOf(hit)}">${contents}</button>`;
+    return `<li>${control}</li>`;
+  }).join('')}</ul>` : '<p class="search-hint">No results. Try a shorter name or a different spelling.</p>';
 }
 $('#search-open').addEventListener('click', () => {
   openDialog(dialogs.search, $('#search-open'));
@@ -212,8 +236,10 @@ $('#search-results').addEventListener('click', event => {
   const trigger = event.target.closest('[data-result]');
   if (!trigger) return;
   const item = searchIndex[Number(trigger.dataset.result)];
-  if (item.place) {
-    openPlace(byId(item.place), $('#search-open'));
+  if (item.target === 'liberation-war') {
+    dialogs.search.close();
+    if (location.hash === '#liberation-war') revealWarTribute();
+    else location.hash = item.target;
     return;
   }
   const select = { discover: districtSelect, history: historySelect, nature: landscapeSelect, travel: travelSelect }[item.target];
@@ -235,6 +261,40 @@ const mapSelectors = { district: $('#map-district'), category: $('#map-category'
 [...new Set(pins.map(place => place.category))].sort().forEach(category => mapSelectors.category.add(new Option(category, category)));
 let map, markers;
 const visibleMarkers = new Map();
+const narrowMap = matchMedia('(max-width: 610px)');
+const mapDetail = $('#map-detail');
+let activeMapPlace;
+
+function highlightMapPlace(place) {
+  for (const button of $('#map-list').querySelectorAll('button')) {
+    button.setAttribute('aria-pressed', button.dataset.pin === place?.id);
+  }
+}
+
+function showMapPlace(place) {
+  activeMapPlace = place;
+  highlightMapPlace(place);
+  mapDetail.innerHTML = `<div><p class="kicker">${escape(districts[place.district][0])} · ${escape(place.category)}</p><h3 id="map-detail-title" tabindex="-1">${escape(place.name)}</h3><p>${escape(place.intro)}</p><div class="place-links">${external('Directions', directions(place), 'button button-green')}${placeLink(place)}</div></div><button class="icon-button" id="map-detail-close" type="button" aria-label="Close selected place">×</button>`;
+  mapDetail.hidden = false;
+  $('#map-detail-title').focus({ preventScroll: true });
+  mapDetail.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion.matches ? 'instant' : 'smooth' });
+}
+
+function clearMapPlace(restoreFocus = false) {
+  const selected = activeMapPlace;
+  activeMapPlace = undefined;
+  mapDetail.hidden = true;
+  highlightMapPlace();
+  if (restoreFocus && selected) $('#map-list').querySelector(`[data-pin="${selected.id}"]`)?.focus({ preventScroll: true });
+}
+mapDetail.addEventListener('click', event => {
+  if (event.target.closest('#map-detail-close')) clearMapPlace(true);
+});
+narrowMap.addEventListener('change', () => {
+  map?.closePopup();
+  renderMap();
+});
+
 function initializeMap() {
   if (map || !window.L) return;
   map = L.map('map', { scrollWheelZoom: false, tapHold: false, minZoom: 8, maxZoom: 18 }).setView([23.54, 90.42], 10);
@@ -264,7 +324,9 @@ function updateMapStatus() {
 function renderMap() {
   const { district, category } = mapSelectors;
   const list = pins.filter(place => (district.value === '' || Number(district.value) === place.district) && (category.value === '' || category.value === place.category));
+  if (activeMapPlace && !list.includes(activeMapPlace)) clearMapPlace();
   $('#map-list').innerHTML = list.map(place => `<button type="button" class="map-option" aria-pressed="false" data-pin="${place.id}">${escape(place.name)}<small>${districts[place.district][0]} · ${place.category}</small></button>`).join('') || '<p class="map-list-empty">No pinned places for these filters.</p>';
+  highlightMapPlace(activeMapPlace);
   $('#map-status').dataset.count = `${list.length} mapped ${list.length === 1 ? 'location' : 'locations'}.`;
   updateMapStatus();
   if (!map) return;
@@ -274,9 +336,10 @@ function renderMap() {
     const style = { Nature: 'water', Infrastructure: 'modern', Archaeology: 'heritage', Museums: 'heritage', 'Heritage buildings': 'heritage', Mosques: 'worship', Temples: 'worship', 'Religious sites': 'worship' }[place.category] || '';
     const icon = L.divIcon({ className: `map-pin ${style}`, iconSize: [19, 19], iconAnchor: [9, 16] });
     const marker = L.marker(place.coords, { icon, title: place.name, alt: place.name, keyboard: true }).addTo(markers);
-    marker.bindPopup(`${place.image ? photo(place.image) : ''}<strong>${escape(place.name)}</strong><div>${districts[place.district][0]}</div><p>${place.intro}</p><div class="place-links">${placeButton(place)}${external('Directions', directions(place))}</div>`, { maxWidth: 255, minWidth: 155 });
+    if (narrowMap.matches) marker.on('click', () => showMapPlace(place));
+    else marker.bindPopup(`${place.image ? photo(place.image) : ''}<strong>${escape(place.name)}</strong><div>${districts[place.district][0]}</div><p>${place.intro}</p><div class="place-links">${placeLink(place)}${external('Directions', directions(place))}</div>`, { maxWidth: 255, minWidth: 155 });
     marker.on('popupopen', () => {
-      for (const button of $('#map-list').querySelectorAll('button')) button.setAttribute('aria-pressed', button.dataset.pin === place.id);
+      highlightMapPlace(place);
     });
     marker.on('popupclose', () => {
       $('#map-list').querySelector(`[data-pin="${place.id}"]`)?.setAttribute('aria-pressed', 'false');
@@ -294,8 +357,8 @@ $('#map-list').addEventListener('click', event => {
   const button = event.target.closest('[data-pin]');
   if (!button) return;
   const marker = visibleMarkers.get(button.dataset.pin);
-  if (marker) marker.openPopup();
-  else openPlace(byId(button.dataset.pin), button);
+  if (marker && !narrowMap.matches) marker.openPopup();
+  else showMapPlace(byId(button.dataset.pin));
 });
 renderMap();
 if ('IntersectionObserver' in window) {
@@ -308,12 +371,10 @@ if ('IntersectionObserver' in window) {
 } else initializeMap();
 
 document.addEventListener('click', event => {
-  const place = event.target.closest('[data-place]');
   const image = event.target.closest('[data-photo]');
   const district = event.target.closest('[data-map-district]');
-  if (place) openPlace(byId(place.dataset.place), place);
   if (image) {
-    photoSet = image.closest('.dialog-gallery') ? [...image.parentElement.querySelectorAll('[data-photo]')].map(button => button.dataset.photo) : image.closest('#gallery-grid') ? activeGallery : [image.dataset.photo];
+    photoSet = image.closest('#gallery-grid') ? activeGallery : [image.dataset.photo];
     photoIndex = photoSet.indexOf(image.dataset.photo);
     renderLightbox();
     openDialog(dialogs.photo, image);
@@ -328,6 +389,9 @@ document.addEventListener('click', event => {
 
 const menu = $('#menu-toggle');
 const nav = $('#main-nav');
+const navLinks = [...document.querySelectorAll('#main-nav a, .quick-nav a')];
+const navSections = [...document.querySelectorAll('main > section[id], footer[id]')];
+
 function setMenu(open) {
   nav.classList.toggle('is-open', open);
   menu.setAttribute('aria-expanded', open);
@@ -351,13 +415,9 @@ function refreshScroll() {
   $('.progress i').style.transform = `scaleX(${total > 0 ? Math.min(top / total, 1) : 0})`;
   $('.header').classList.toggle('scrolled', top > 25);
   $('#to-top').hidden = top < 700;
-  const navLinks = [...nav.querySelectorAll('a')];
-  const nearest = navLinks.filter(link => {
-    const section = document.querySelector(link.getAttribute('href'));
-    return section.getBoundingClientRect().top <= 155;
-  }).at(-1) || navLinks[0];
+  const nearest = navSections.filter(section => section.getBoundingClientRect().top <= 155).at(-1) || navSections[0];
   for (const link of navLinks) {
-    if (link === nearest) link.setAttribute('aria-current', 'location');
+    if (link.hash === '#' + nearest.id || (link.hash === '#liberation-war' && location.hash === '#liberation-war' && nearest.id === 'history')) link.setAttribute('aria-current', 'location');
     else link.removeAttribute('aria-current');
   }
 }
@@ -374,9 +434,20 @@ window.addEventListener('scroll', queueScroll, { passive: true });
 window.addEventListener('resize', queueScroll);
 document.addEventListener('toggle', queueScroll, true);
 if ('ResizeObserver' in window) new ResizeObserver(queueScroll).observe(document.body);
-function syncSources() {
-  if (location.hash === '#sources') $('#sources').open = true;
+function revealWarTribute() {
+  historySelect(warIndex);
+  requestAnimationFrame(() => {
+    warTribute.scrollIntoView({ block: 'start' });
+    $('#war-intro-title').focus({ preventScroll: true });
+  });
 }
-window.addEventListener('hashchange', syncSources);
-syncSources();
+function syncPageAnchor() {
+  if (location.hash === '#sources') $('#sources').open = true;
+  if (location.hash === '#liberation-war') revealWarTribute();
+}
+window.addEventListener('hashchange', syncPageAnchor);
+document.addEventListener('click', event => {
+  if (location.hash === '#liberation-war' && event.target.closest('a[href="#liberation-war"]')) revealWarTribute();
+});
+syncPageAnchor();
 refreshScroll();

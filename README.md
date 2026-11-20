@@ -12,11 +12,12 @@ From the project root, run `python3 -m http.server 8000 --directory dist` and op
 
 **Workers.** The included `wrangler.jsonc` points Workers at `dist`. To deploy to your Cloudflare account, authenticate Wrangler and run `npx wrangler deploy` from the project root. [Workers static assets](https://developers.cloudflare.com/workers/static-assets/)
 
-For a new hosting address, update the absolute social preview URLs in `dist/index.html` and the origin in `dist/robots.txt` and `dist/sitemap.xml`.
+For a new public address, change the absolute metadata in `dist/index.html` and `publicOrigin` in `dist/place-guide.js`, then regenerate the landmark pages and sitemap.
 
 ## Edit the guide
 
 - `dist/data.js` contains the place directory, historical periods, river stories, culture, facts, itineraries, photo credits and source links. Add a coordinate source to any place with a map pin.
+- Run `node scripts/build-places.mjs` after editing place records or visiting information. It regenerates the static pages and public sitemap in `dist/`. Commit the regenerated files.
 - `dist/index.html` controls the page sections, metadata and navigation.
 - `dist/style.css` handles layout, typography and responsive variants.
 - `dist/app.js` handles tabs, search, filters, map markers and galleries.
