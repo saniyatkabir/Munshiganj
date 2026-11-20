@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Munshiganj — Echoes of Bikrampur</title>
+  <meta name="description" content="Explore Munshiganj’s river landscapes, the layered history of Bikrampur, and places to visit across all six upazilas.">
+  <meta name="theme-color" content="#f8f5eb">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Munshiganj — Echoes of Bikrampur">
+  <meta property="og:description" content="An independent guide to Munshiganj’s history, landscapes and living heritage.">
+  <meta property="og:url" content="https://munshiganj-echoes-of-bikrampur.saniyatkabir1337.chatgpt.site/">
+  <meta property="og:image" content="https://munshiganj-echoes-of-bikrampur.saniyatkabir1337.chatgpt.site/assets/fort-wide.webp">
+  <meta property="og:image:alt" content="Idrakpur Fort in Munshiganj">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48 64x64">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" sizes="any">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <link rel="stylesheet" href="assets/leaflet/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="assets/leaflet/leaflet.js" defer></script>
+  <script src="app.js" type="module"></script>
+</head>
+<body>
+  <a href="#main" class="skip">Skip to content</a>
+  <div class="progress" aria-hidden="true"><i></i></div>
+  <header class="header">
+    <div class="nav-shell">
+      <a class="brand" href="#home" aria-label="Munshiganj home"><img src="assets/mark.svg" width="43" height="43" alt=""><span>Munshiganj<small>মুন্সীগঞ্জ</small></span></a>
+      <nav id="main-nav" aria-label="Main navigation">
+        <a href="#home">Home</a><a href="#discover">Discover</a><a href="#history">History</a><a href="#places">Places</a><a href="#nature">Nature</a><a href="#culture">Culture</a><a href="#map-section">Explore Map</a><a href="#about">About</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="search-open" class="icon-button" aria-label="Search the guide" title="Search the guide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 4.5 4.5"/></svg></button>
+        <button id="menu-toggle" class="icon-button menu-toggle" aria-controls="main-nav" aria-expanded="false" aria-label="Open menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero" id="home" aria-labelledby="hero-title">
+      <picture class="hero-photo"><source media="(max-width: 650px)" srcset="assets/fort-sm.webp"><img src="assets/fort-wide.webp" alt="" fetchpriority="high" width="1280" height="853"></picture>
+      <div class="hero-content wrap">
+        <p class="eyebrow"><span></span> DHAKA DIVISION, BANGLADESH</p>
+        <h1 id="hero-title">Munshiganj</h1>
+        <p class="hero-tagline">Echoes of Bikrampur</p>
+        <p class="hero-intro">Follow the rivers into a district of brick forts, buried monasteries and villages that still carry the name of Bikrampur.</p>
+        <div class="hero-links"><a class="button button-ivory" href="#discover">Explore Munshiganj</a><a class="button button-outline" href="#history">Discover Its History</a></div>
+      </div>
+      <div class="hero-bottom wrap"><a href="#discover" class="scroll-link" aria-label="Scroll to Discover"><span aria-hidden="true"></span> Scroll to discover</a><a class="hero-credit" href="https://commons.wikimedia.org/wiki/File:Historical_Idrakpur_Fort_of_Munshiganj.jpg" target="_blank" rel="noopener">Idrakpur Fort · Rayhan9d / Wikimedia Commons</a></div>
+    </section>
+
+    <nav class="quick-nav wrap" aria-label="Visitor guide shortcuts"><a href="#gallery">Photography</a><a href="#facts">Did you know?</a><a href="#travel">Plan a visit</a></nav>
+    <section class="section wrap" id="discover">
+      <div class="intro-grid">
+        <div><p class="eyebrow"><span></span> THE DISTRICT</p><h2>A river country with<br class="desktop-break"> a long memory</h2></div>
+        <div class="intro-copy"><p>South of Dhaka, Munshiganj occupies a river landscape shaped by the Padma, Meghna and Dhaleshwari. Inscriptions name historical Vikramapura as a royal seat. Excavations, religious buildings and homes give that history a physical presence today.</p><p>Explore the six upazilas, from the wetland around Sreenagar to the Meghna crossings of Gazaria. Each offers a different view of the district and its relationship with water.</p><a class="text-link" href="#map-section">Find your bearings on the map</a></div>
+      </div>
+      <div class="district-explorer">
+        <div class="subhead"><h3>Six upazilas</h3><p>Select an upazila to see what’s there.</p></div>
+        <div class="tab-row" id="district-tabs" aria-label="Upazilas"></div>
+        <div id="district-panel"></div>
+        <details class="atlas"><summary>View the district atlas map</summary><figure><a href="https://commons.wikimedia.org/wiki/File:Munshiganj_District_upazila_geocode_map_-_Small_Area_Atlas_Bangladesh.svg" target="_blank" rel="noopener"><img src="assets/districtmap.webp" width="607" height="740" loading="lazy" alt="Bangladesh Bureau of Statistics district map showing the six upazilas of Munshiganj"></a><figcaption>Bangladesh Bureau of Statistics · <a href="https://commons.wikimedia.org/wiki/File:Munshiganj_District_upazila_geocode_map_-_Small_Area_Atlas_Bangladesh.svg" target="_blank" rel="noopener">Small Area Atlas and original map</a></figcaption></figure></details>
+      </div>
+    </section>
+
+    <section class="section history-section" id="history">
+      <div class="wrap">
+        <div class="section-heading"><p class="eyebrow"><span></span> HISTORY</p><h2>The making of Bikrampur</h2><p>From the royal grants of Vikramapura to the archaeology still being uncovered today.</p></div>
+        <div class="timeline"><div id="timeline-tabs" class="timeline-nav" aria-label="Historical periods"></div><div id="timeline-panel"></div></div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="places">
+      <div class="section-heading"><p class="eyebrow"><span></span> THE PLACE DIRECTORY</p><h2>Places worth a closer look</h2><p>Find a fort, a village temple, a museum or a stretch of riverbank.</p></div>
+      <div class="directory-controls"><label class="field field-search"><span class="visually-hidden">Search places</span><input id="place-search" placeholder="Search places or upazilas…" type="search"></label><label class="field"><span class="visually-hidden">Filter places by upazila</span><select id="place-district"><option value="">All upazilas</option></select></label></div>
+      <div class="chip-row" id="place-filters" aria-label="Place categories"></div>
+      <p class="result-count" id="place-count" role="status"></p>
+      <div class="place-grid" id="place-grid"></div>
+      <button type="button" id="more-places" class="button button-line" hidden>Show all places</button>
+    </section>
+
+    <section class="section nature-section" id="nature">
+      <div class="wrap">
+        <div class="section-heading"><p class="eyebrow"><span></span> RIVERS & LANDSCAPES</p><h2>Where water sets the pace</h2><p>Follow the rivers, wetlands and village landscapes through the seasons.</p></div>
+        <div class="tab-row" id="nature-tabs" aria-label="River and landscape topics"></div><div id="nature-panel"></div>
+        <div class="bridge-story"><img src="assets/bridge-wide.webp" width="1280" height="960" loading="lazy" alt="The Padma Bridge crossing a wide stretch of river from above">
+        <div><p class="eyebrow"><span></span> MAWA & THE PADMA</p><h3>A crossing that changed the route south</h3><p>Padma Bridge connects Mawa in Munshiganj with Jajira in Shariatpur. Road traffic runs above the railway, and the fixed crossing has changed how journeys between Dhaka and the southwest pass through Mawa.</p><button class="text-link" type="button" data-place="padma-bridge">Read about Padma Bridge</button></div></div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="culture">
+      <div class="section-heading"><p class="eyebrow"><span></span> PEOPLE & CULTURE</p><h2>The Bikrampur that lives on</h2><p>Meet the people, crafts and food traditions that connect the region’s past to everyday life.</p></div>
+      <div id="culture-grid" class="culture-grid"></div>
+      <div class="subhead"><h3>People of Bikrampur</h3></div><div class="two-column" id="people-grid"></div>
+      <div class="subhead"><h3>At the table</h3></div><div class="food-grid" id="food-grid"></div>
+    </section>
+
+    <section class="section map-section" id="map-section">
+      <div class="wrap">
+        <div class="section-heading"><p class="eyebrow"><span></span> EXPLORE MAP</p><h2>Get your bearings</h2><p>Choose an upazila or category, then select a pin for a closer look and directions.</p></div>
+        <div class="map-toolbar"><label class="field">Upazila<select id="map-district"><option value="">All upazilas</option></select></label><label class="field">Category<select id="map-category"><option value="">All categories</option></select></label><button id="map-reset" class="button button-line" type="button">Reset map</button></div>
+        <div class="map-shell"><div id="map" aria-label="Interactive map of Munshiganj"></div><div id="map-list" aria-label="Locations on the map"></div></div>
+        <p id="map-status" class="muted" role="status"></p>
+      </div>
+    </section>
+
+    <section class="section wrap" id="gallery">
+      <div class="section-heading"><p class="eyebrow"><span></span> PHOTOGRAPHY</p><h2>Munshiganj Through the Lens</h2><p>Brickwork, changing water and daily life, photographed across the district.</p></div>
+      <div id="gallery-filters" class="chip-row" aria-label="Photography categories"></div><div id="gallery-grid" class="gallery-grid"></div>
+    </section>
+
+    <section class="section facts-section" id="facts">
+      <div class="wrap"><div class="section-heading"><p class="eyebrow"><span></span> DID YOU KNOW?</p><h2>Details worth noticing</h2><p>Open a question to learn more about the district.</p></div><div id="facts-grid" class="facts-grid"></div></div>
+    </section>
+
+    <section class="section wrap" id="travel">
+      <div class="section-heading"><p class="eyebrow"><span></span> TRAVEL GUIDE</p><h2>Plan a day in Munshiganj</h2><p>Choose an outing by what you want to see, then check routes and access before you go.</p></div>
+      <div id="trip-tabs" class="tab-row" aria-label="Itineraries"></div><div id="trip-panel"></div>
+      <div class="two-column travel-notes">
+        <article><h3>From Dhaka</h3><p>For Munshiganj town, use directions via Muktarpur and confirm current bus options around Gulistan. For Mawa, look for options on the Dhaka–Mawa corridor. These are different approaches to the district.</p><a class="text-link" href="https://www.google.com/maps/dir/?api=1&amp;origin=Dhaka%2C+Bangladesh&amp;destination=Munshiganj%2C+Bangladesh" target="_blank" rel="noopener">Route from Dhaka</a></article>
+        <article><h3>From Narayanganj</h3><p>Use Muktarpur as a waypoint for the road approach to Munshiganj town. Check current traffic and local connections before leaving. For Gazaria, plan the Meghna-side approach as a separate trip.</p><a class="text-link" href="https://www.google.com/maps/dir/?api=1&amp;origin=Narayanganj%2C+Bangladesh&amp;destination=Munshiganj%2C+Bangladesh&amp;waypoints=Muktarpur+Bridge" target="_blank" rel="noopener">Route from Narayanganj</a></article>
+        <article><h3>Seasons and access</h3><p>Cooler dry months suit walking and architecture. For wetland photography, check water levels and access in the rainy season. Old compounds, excavation sites and river landings can have steps, mud and uneven ground. Ask ahead about step-free access.</p></article>
+        <article><h3>Visiting with care</h3><p>Ask before photographing worshippers, homes or workshops. Stay on marked paths around excavations and confirm river conditions before a boat outing. Opening arrangements, boat access and transport services can change.</p></article>
+      </div>
+    </section>
+  </main>
+
+  <footer id="about" class="footer">
+    <div class="wrap"><div class="footer-main"><div><p class="eyebrow"><span></span> ABOUT THIS PROJECT</p><h2>Munshiganj</h2><p class="footer-tag">Echoes of Bikrampur</p><p>An independent digital exploration of Munshiganj’s history, landscapes, and living heritage.</p></div>
+    <div class="footer-links"><a href="#discover">Discover the district</a><a href="#places">Browse places</a><a href="#travel">Plan a visit</a><a href="#gallery">Photography</a><a href="#sources">Sources &amp; credits</a></div></div>
+    <details id="sources"><summary>Sources and photo credits</summary><div class="credit-columns" id="source-list"></div></details>
+    <div class="footer-base"><span>Made by Saniyat Kabir Ishan</span><a href="#home">Back to the beginning</a></div></div>
+  </footer>
+  <button id="to-top" class="icon-button to-top" type="button" aria-label="Back to top" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 14 7-7 7 7"/></svg></button>
+  <dialog id="detail-dialog" class="dialog" aria-labelledby="detail-title"><div class="dialog-header"><button class="icon-button dialog-close" type="button" aria-label="Close details">×</button></div><div id="detail-content"></div></dialog>
+  <dialog id="search-dialog" class="dialog search-dialog" aria-labelledby="search-title"><div class="dialog-header"><button class="icon-button dialog-close" type="button" aria-label="Close search">×</button></div><div class="dialog-body"><h2 id="search-title">Search Munshiganj</h2><label class="field"><span class="visually-hidden">Search the guide</span><input id="global-search" type="search" placeholder="Try Idrakpur, Arial Beel or ইতিহাস…" autocomplete="off"></label><div id="search-results" aria-live="polite"></div></div></dialog>
+  <dialog id="lightbox" class="lightbox" aria-label="Photo viewer"><button class="icon-button dialog-close" type="button" aria-label="Close photo viewer">×</button><button class="icon-button photo-prev" type="button" aria-label="Previous photo">‹</button><figure id="lightbox-figure"></figure><button class="icon-button photo-next" type="button" aria-label="Next photo">›</button></dialog>
+  <noscript><p class="wrap">Enable JavaScript to use the interactive district explorer, map and directory.</p></noscript>
+</body>
+</html>
